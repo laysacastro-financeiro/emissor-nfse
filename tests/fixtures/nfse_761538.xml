@@ -1,0 +1,126 @@
+<ConsultarNfseServicoPrestadoResposta xmlns="http://www.abrasf.org.br/nfse.xsd">
+  <ListaNfse>
+    <CompNfse>
+      <Nfse versao="2.04">
+        <InfNfse>
+          <Numero>761538</Numero>
+          <CodigoVerificacao>BBABA58FB</CodigoVerificacao>
+          <DataEmissao>2026-09-16T10:24:13</DataEmissao>
+          <OutrasInformacoes>PROCON: TEL 151- SETOR COMERCIAL SUL, QUADRA 8, BLOCO B-60, SALA 240- BRASILIA - DF</OutrasInformacoes>
+          <ValoresNfse>
+            <BaseCalculo>1650.00</BaseCalculo>
+            <Aliquota>2</Aliquota>
+            <ValorIss>33.00</ValorIss>
+            <ValorLiquidoNfse>1650.00</ValorLiquidoNfse>
+          </ValoresNfse>
+          <DescricaoCodigoTributacaoMunicípio>(2%) 1.05 - Licenciamento ou cessão de direito de uso de programas de computação.</DescricaoCodigoTributacaoMunicípio>
+          <ValorCredito>0</ValorCredito>
+          <PrestadorServico>
+            <RazaoSocial>EMPRESA EXEMPLO LTDA</RazaoSocial>
+            <NomeFantasia>PORTAL EXEMPLO</NomeFantasia>
+            <Endereco>
+              <Endereco>RUA EXEMPLO 100 </Endereco>
+              <Numero>0</Numero>
+              <Bairro>ZONA INDUSTRIAL</Bairro>
+              <CodigoMunicipio>5300108</CodigoMunicipio>
+              <Uf>DF</Uf>
+              <Cep>70040010</Cep>
+            </Endereco>
+            <Contato>
+              <Telefone>1100000000</Telefone>
+              <Email>contato@example.com</Email>
+            </Contato>
+          </PrestadorServico>
+          <OrgaoGerador>
+            <CodigoMunicipio>5300108</CodigoMunicipio>
+            <Uf>DF</Uf>
+          </OrgaoGerador>
+          <DeclaracaoPrestacaoServico>
+            <InfDeclaracaoPrestacaoServico>
+              <Rps>
+                <IdentificacaoRps>
+                  <Numero>760726</Numero>
+                  <Serie>3</Serie>
+                  <Tipo>1</Tipo>
+                </IdentificacaoRps>
+                <DataEmissao>2026-09-16</DataEmissao>
+                <Status>1</Status>
+              </Rps>
+              <Competencia>2026-09-16</Competencia>
+              <Servico>
+                <Valores>
+                  <ValorServicos>1650.00</ValorServicos>
+                  <ValorDeducoes>0.00</ValorDeducoes>
+                  <ValorPis>0.00</ValorPis>
+                  <ValorCofins>0.00</ValorCofins>
+                  <ValorInss>0.00</ValorInss>
+                  <ValorIr>0.00</ValorIr>
+                  <ValorCsll>0.00</ValorCsll>
+                  <OutrasRetencoes>0.00</OutrasRetencoes>
+                  <ValTotTributos>0.00</ValTotTributos>
+                  <DescontoIncondicionado>0</DescontoIncondicionado>
+                  <DescontoCondicionado>0</DescontoCondicionado>
+                </Valores>
+                <IssRetido>2</IssRetido>
+                <ItemListaServico>01.05</ItemListaServico>
+                <CodigoCnae>6202300</CodigoCnae>
+                <CodigoTributacaoMunicipio>105</CodigoTributacaoMunicipio>
+                <CodigoNbs>111032200</CodigoNbs>
+                <Discriminacao>Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes. Periodo anual de uso do Portal Exemplo, boleto IU1580350. - Quantidade:             1,0000 (X) Valor unitário:         1.650,00 (=) Total: R$         1.650,00</Discriminacao>
+                <CodigoMunicipio>5300108</CodigoMunicipio>
+                <ExigibilidadeISS>1</ExigibilidadeISS>
+                <MunicipioIncidencia>5300108</MunicipioIncidencia>
+              </Servico>
+              <Prestador>
+                <CpfCnpj>
+                  <Cnpj>11222333000181</Cnpj>
+                </CpfCnpj>
+                <InscricaoMunicipal>0000000000001</InscricaoMunicipal>
+              </Prestador>
+              <TomadorServico>
+                <IdentificacaoTomador>
+                  <CpfCnpj>
+                    <Cnpj>10000978000107</Cnpj>
+                  </CpfCnpj>
+                </IdentificacaoTomador>
+                <RazaoSocial>CLIENTE EXEMPLO LTDA</RazaoSocial>
+                <Endereco>
+                  <Endereco>RUA EXEMPLO</Endereco>
+                  <Numero>0</Numero>
+                  <Bairro>CHACARA BELENZINHO</Bairro>
+                  <CodigoMunicipio>3550308</CodigoMunicipio>
+                  <Uf>SP</Uf>
+                  <Cep>03378000</Cep>
+                </Endereco>
+              </TomadorServico>
+              <OptanteSimplesNacional>2</OptanteSimplesNacional>
+              <IncentivoFiscal>2</IncentivoFiscal>
+              <InformacoesComplementares>DOC: 2943295-Fantasia: 179240-********  -  - Conforme SC Cosit n° 157/2023 e 243/2017, ficam dispensadas as retenções na fonte do licenciamento ou cessão de uso de software sem que o contrato estabeleça a prestação do serviço de programação. -</InformacoesComplementares>
+            </InfDeclaracaoPrestacaoServico>
+            <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+              <SignedInfo>
+                <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+                <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+                <Reference URI="">
+                  <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+                    <Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+                  </Transforms>
+                  <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+                  <DigestValue>cGrP9TMJf8aEHsSmOH/XnWlEst0=</DigestValue>
+                </Reference>
+              </SignedInfo>
+              <SignatureValue>hJ2dUR0XGbkOCtX54X4QVrWT1Cwy0zQ2Wq/OvNAwmSS1iFs4RvoShwMK8Z4hLe2we+v2cAuOwbVdtveOR/XpZ/Psdqxz4FtbggfChaZqtN6YEQU71Kq4RuWX5xdm4RTFo2S7DIwRklTaeMAUhfRQtzHeZYS10JlUTZBw8kv/JUR/HsWPDYt9j9bkfnp7h/6bXse1rutvesSxtnY181ahUse7wt1NjNNTIFXSHgFBM+XPwDemFy9yehI4WG9/+u6NLKOjYXKGwOwl08L2dAQ12v8CAxMxZYua6aQhGMFbl2l2LdGFo/v6gGuFszNKKRJWdC6yp7X5/AbUWQLGeunB9Q==</SignatureValue>
+              <KeyInfo>
+                <X509Data>
+                  <X509Certificate>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</X509Certificate>
+                </X509Data>
+              </KeyInfo>
+            </Signature>
+          </DeclaracaoPrestacaoServico>
+        </InfNfse>
+      </Nfse>
+    </CompNfse>
+    <Pagina>1</Pagina>
+  </ListaNfse>
+</ConsultarNfseServicoPrestadoResposta>

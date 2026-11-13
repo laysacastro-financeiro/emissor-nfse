@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Certificado — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<h1>Certificado digital A1</h1>
+<p class="suave">O certificado e a senha ficam só na memória do sistema enquanto ele estiver ligado. Nada é gravado em disco. Ao reiniciar o sistema, é preciso carregar de novo.</p>
+
+{% if certificado %}
+<div class="cartao">
+  <h2>Certificado carregado</h2>
+  <p><b>{{ certificado.titular }}</b></p>
+  <p>Válido até {{ certificado.valido_ate.strftime('%d/%m/%Y') }}
+    {% if certificado.dias_para_vencer < 30 %}<span class="erro">— vence em {{ certificado.dias_para_vencer }} dias!</span>
+    {% else %}<span class="suave">({{ certificado.dias_para_vencer }} dias)</span>{% endif %}</p>
+  <div class="acoes">
+    <form method="post" action="{{ url_for('consultar_cadastro') }}">
+      <button type="submit">Consultar cadastro da empresa no ISS Net (só leitura)</button>
+    </form>
+    <form method="post" action="{{ url_for('remover_certificado') }}">
+      <button type="submit" class="botao secundario">Remover da memória</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="cartao">
+  <h2>{{ "Trocar certificado" if certificado else "Carregar certificado" }}</h2>
+  <form method="post" enctype="multipart/form-data" class="busca">
+    <input type="hidden" name="voltar" value="{{ voltar }}">
+    <input type="file" name="pfx" accept=".pfx,.p12" required>
+    <input type="password" name="senha" placeholder="Senha do certificado" autocomplete="off" required>
+    <button type="submit">Carregar</button>
+  </form>
+  <p class="suave">Ambiente: <b>{{ config.AMBIENTE|upper }}</b> — notas emitidas aqui não têm valor fiscal.</p>
+</div>
+{% endblock %}

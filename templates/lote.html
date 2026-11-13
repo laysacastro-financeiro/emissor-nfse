@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% block titulo %}Lote {{ lote_id }} — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<h1>Lote {{ lote_id }}</h1>
+<p class="suave">Arquivo: {{ remessa.nome_arquivo }}</p>
+{% if verificando_ceps %}
+<p class="aviso">Conferindo os CEPs das vendas em segundo plano ({{ ceps_verificados }} de {{ remessa.vendas|length }}). Atualize a
+  página daqui a pouco: os problemas de CEP vão aparecendo e você não precisa clicar em nada.</p>
+{% endif %}
+{% if ambiente != "producao" and (ocultas or filhos) %}
+<section class="cartao" id="lotes-producao">
+  <h2>Lotes de produção desta remessa</h2>
+  <p class="suave"><b>{{ ocultas }}</b> venda{{ "s" if ocultas != 1 }} desta remessa já {{ "estão" if ocultas != 1 else "está" }} em lotes de produção e
+    {{ "foram ocultadas" if ocultas != 1 else "foi ocultada" }} da lista abaixo, para não serem emitidas de novo.</p>
+  {% if filhos %}
+  <div class="tabela"><table>
+    <tr><th>Lote</th><th class="valor">Vendas</th><th class="valor">Notas emitidas</th><th class="valor">Pendentes</th><th class="valor">No Gerência</th></tr>
+    {% for f in filhos %}
+    <tr><td><a href="{{ url_for('lote', lote_id=f.id) }}">{{ f.id }}</a></td><td class="valor">{{ f.vendas }}</td>
+      <td class="valor">{{ f.autorizadas }}</td><td class="valor {{ 'aviso' if f.pendentes }}">{{ f.pendentes }}</td><td class="valor">{{ f.retornadas }}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if remessa.sem_nota %}
+<section class="cartao" id="sem-nota">
+  <h2>Sem nota — decisão da empresa ({{ remessa.sem_nota|length }})</h2>
+  <p class="suave">Vendas de clientes para os quais a empresa decidiu <b>não emitir nota</b> (o ISS Net recusa com EM030 e não temos a
+    inscrição municipal certa). Elas não entram em lotes, não são enviadas ao ISS Net e não contam como erro.
+    <a href="{{ url_for('sem_nota_csv') }}">Baixar a lista de pedidos sem nota (.csv)</a></p>
+  <div class="tabela"><table>
+    <tr><th>Pedido</th><th>Cliente</th><th>CPF/CNPJ</th><th>Boleto</th><th class="valor">Valor</th><th>Decisão</th><th></th></tr>
+    {% for v in remessa.sem_nota %}
+    <tr>
+      <td>{{ v.pedido }}</td><td>{{ v.cliente.razao_social }}</td><td>{{ v.cliente.documento }}</td>
+      <td>{{ v.boleto or "—" }}</td><td class="valor">{{ v.valor_total|brl }}</td>
+      <td class="suave">{{ v.sem_nota.motivo }}<br>{{ v.sem_nota.usuario }} · {{ v.sem_nota.em[8:10] }}/{{ v.sem_nota.em[5:7] }}/{{ v.sem_nota.em[:4] }}</td>
+      <td>
+        <form method="post" action="{{ url_for('desfazer_sem_nota') }}"
+              onsubmit="return confirm('Voltar a emitir nota para este cliente? As vendas dele voltam para os lotes.');">
+          <input type="hidden" name="documento" value="{{ v.cliente.documento }}">
+          <input type="hidden" name="voltar" value="{{ url_for('lote', lote_id=lote_id) }}">
+          <button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Voltar a emitir nota para este cliente</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</section>
+{% endif %}
+
+<section class="cartao" id="vendas">
+  <h2>1. Conferência das vendas</h2>
+  <div class="numeros">
+    <a class="numero filtro-card {{ 'ativo' if filtros.situacao == 'todas' }}" href="{{ url_for('lote', lote_id=lote_id) }}#vendas">
+      Todas · {{ remessa.valor_total|brl }}<b>{{ remessa.vendas|length }}</b></a>
+    <a class="numero filtro-card ok {{ 'ativo' if filtros.situacao == 'ok' }}" href="{{ url_for('lote', lote_id=lote_id, situacao='ok') }}#vendas">
+      ✔ OK<b>{{ remessa.sem_pendencia|length }}</b></a>
+    <a class="numero filtro-card aviso {{ 'ativo' if filtros.situacao == 'atencao' }}" href="{{ url_for('lote', lote_id=lote_id, situacao='atencao') }}#vendas">
+      ⚠ Atenção (emite, mas confira)<b>{{ remessa.com_atencao|length }}</b></a>
+    <a class="numero filtro-card erro {{ 'ativo' if filtros.situacao == 'erro' }}" href="{{ url_for('lote', lote_id=lote_id, situacao='erro') }}#vendas">
+      ✖ Erro (não emite)<b>{{ remessa.com_erro|length }}</b></a>
+  </div>
+  <p class="suave">Pacotes:
+    {% for pacote, qtd in por_pacote %}{{ pacote }} {{ qtd }}{% if not loop.last %} · {% endif %}{% endfor %}
+  </p>
+  {% if remessa.erros_arquivo %}
+    <p class="erro"><b>Problemas na estrutura do arquivo:</b></p>
+    <ul class="lista erro">{% for e in remessa.erros_arquivo %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+  <div class="acoes">
+    <form method="post" action="{{ url_for('verificar_ceps', lote_id=lote_id) }}"
+          onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Verificando CEPs… aguarde (até 1½ min)';">
+      <button type="submit" class="botao secundario">Verificar CEPs antes de emitir</button>
+    </form>
+    <a class="botao secundario" href="{{ url_for('ceps_csv', lote_id=lote_id) }}">Baixar lista de CEPs a corrigir (.csv)</a>
+    <span class="suave">Confere o CEP de cada cliente com o município do cadastro (ViaCEP/IBGE) e procura o CEP correto pelo endereço.</span>
+  </div>
+
+  {% if ceps_recusados %}
+  <div class="alerta-producao">
+    <b>{{ ceps_recusados }} venda{{ 's' if ceps_recusados > 1 }} com CEP que o ISS Net já recusou (E0240) em outras notas.</b>
+    Emitir assim vai gerar rejeição: troque o CEP antes (a lista mostra os CEPs que o ISS Net já aceitou no município).
+    <a href="{{ url_for('lote', lote_id=lote_id, motivo=motivo_cep_recusado) }}#vendas">Ver só essas vendas</a>
+  </div>
+  {% endif %}
+
+  <form class="busca" method="get" action="{{ url_for('lote', lote_id=lote_id) }}#vendas">
+    <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar cliente, CPF/CNPJ, pedido ou boleto">
+    <select name="situacao">
+      {% for valor, rotulo in [('todas', 'Todas as situações'), ('ok', '✔ OK'), ('atencao', '⚠ Atenção'), ('erro', '✖ Erro')] %}
+        <option value="{{ valor }}" {{ 'selected' if filtros.situacao == valor }}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+    <select name="motivo">
+      <option value="">Qualquer motivo</option>
+      {% for m, qtd in motivos %}
+        <option value="{{ m }}" {{ 'selected' if filtros.motivo == m }}>{{ m }} ({{ qtd }})</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filtrar</button>
+    <a href="{{ url_for('lote', lote_id=lote_id) }}#vendas">Limpar</a>
+  </form>
+
+  <p class="suave">
+    {% if total_filtradas %}Mostrando {{ inicio_pagina + 1 }}–{{ inicio_pagina + vendas|length }} de {{ total_filtradas }} venda{{ 's' if total_filtradas > 1 }}
+    {% else %}Nenhuma venda encontrada com esses filtros.{% endif %}
+  </p>
+  {% macro seletor_de_paginas() %}
+  {% if total_paginas > 1 %}
+  <nav class="paginacao" aria-label="Páginas">
+    {% if link_anterior %}<a href="{{ link_anterior }}">← Anterior</a>{% endif %}
+    {% for n, link in paginas %}
+      {% if n is none %}<span class="reticencias">…</span>
+      {% elif n == pagina %}<span class="pagina-atual" aria-current="page">{{ n }}</span>
+      {% else %}<a class="numero-pagina" href="{{ link }}">{{ n }}</a>{% endif %}
+    {% endfor %}
+    {% if link_proxima %}<a href="{{ link_proxima }}">Próxima →</a>{% endif %}
+  </nav>
+  {% endif %}
+  {% endmacro %}
+  {% if vendas %}
+  {{ seletor_de_paginas() }}
+  <div class="tabela"><table>
+    <tr><th>Situação</th><th>Pedido</th><th>Cliente</th><th>CPF/CNPJ</th><th>UF</th><th>Pacote</th><th>Boleto</th><th class="valor">Valor</th><th>Detalhes</th></tr>
+    {% for v in vendas %}
+    {% set s = situacao(v) %}
+    <tr>
+      <td class="{{ {'ok': 'ok', 'atencao': 'aviso', 'erro': 'erro'}[s] }}">{{ {'ok': '✔ OK', 'atencao': '⚠ Atenção', 'erro': '✖ Erro'}[s] }}</td>
+      <td>{{ v.pedido }}</td>
+      <td>{{ v.cliente.razao_social or "—" }}</td>
+      <td>{{ v.cliente.documento or "—" }}</td>
+      <td>{{ v.cliente.uf }}</td>
+      <td>{{ v.pacote }}</td>
+      <td>{{ v.boleto }}</td>
+      <td class="valor">{{ v.valor_total|brl }}</td>
+      <td>
+        {% if v.erros %}<ul class="lista erro">{% for e in v.erros %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        {% if v.avisos %}<ul class="lista aviso">{% for a in v.avisos %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+        {% if v.alternativa_municipio %}
+        <div class="sugestoes">
+          {% if v.alternativa_municipio.confirmado_receita %}
+          <b>A Receita Federal confirma: o endereço do CNPJ fica em {{ v.alternativa_municipio.cidade }}/{{ v.alternativa_municipio.uf }}</b>
+          ({{ v.alternativa_municipio.logradouro }}, {{ v.alternativa_municipio.bairro }} — CEP {{ v.alternativa_municipio.cep[:5] }}-{{ v.alternativa_municipio.cep[5:] }}),
+          e não no município do cadastro. O <b>município do cliente está errado</b> no Gerência.
+          {% else %}
+          <b>A rua e o bairro do cadastro existem em {{ v.alternativa_municipio.cidade }}/{{ v.alternativa_municipio.uf }}</b>
+          ({{ v.alternativa_municipio.logradouro }}, {{ v.alternativa_municipio.bairro }} — CEP {{ v.alternativa_municipio.cep[:5] }}-{{ v.alternativa_municipio.cep[5:] }}),
+          e não no município do cadastro. Provavelmente o <b>município do cliente está errado</b> no Gerência.
+          {% endif %}
+          <form method="post" action="{{ url_for('aplicar_municipio_rota', lote_id=lote_id) }}"
+                onsubmit="return confirm('Emitir a nota do pedido {{ v.pedido|js }} com o município {{ v.alternativa_municipio.cidade|js }}/{{ v.alternativa_municipio.uf|js }}? O município do tomador define onde incide o imposto: só confirme se o cliente realmente fica nessa cidade.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <button type="submit" class="botao secundario">Usar município {{ v.alternativa_municipio.cidade }}/{{ v.alternativa_municipio.uf }}</button>
+          </form>
+        </div>
+        {% endif %}
+        {% if v.sugestoes_cep %}
+        <div class="sugestoes">
+          <b>CEP sugerido ({{ v.cliente.logradouro }}, {{ v.cliente.uf }}):</b>
+          {% for s in v.sugestoes_cep %}
+          {% if s.origem == 'receita' %}<span class="selo">CEP do cadastro do CNPJ na Receita Federal{% if not s.mesma_rua %} — a rua da Receita é diferente da do Gerência: confira{% endif %}</span>
+          {% elif s.origem == 'receita_rua' %}<span class="selo">CEP da rua do endereço da Receita Federal (o CEP da Receita é geral, sem rua)</span>
+          {% elif s.origem == 'iss_aceito' %}<span class="selo">O ISS Net já aceitou este CEP neste município ({{ s.aceitos }} nota{{ 's' if s.aceitos > 1 }}){% if not s.cep.endswith('000') %} — pode ser de outra rua da cidade: prefira o CEP da rua do cliente{% endif %}</span>{% endif %}
+          <form method="post" action="{{ url_for('aplicar_cep_rota', lote_id=lote_id) }}"
+                onsubmit="return confirm('Usar o CEP {{ s.cep[:5]|js }}-{{ s.cep[5:]|js }} para o pedido {{ v.pedido|js }}? Confira o endereço antes.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}"><input type="hidden" name="cep" value="{{ s.cep }}">
+            {{ s.cep[:5] }}-{{ s.cep[5:] }}{% if s.logradouro %} · {{ s.logradouro }}{% endif %}{% if s.bairro %} · {{ s.bairro }}{% endif %}
+            <button type="submit" class="botao secundario">Usar este CEP</button>
+          </form>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if v.endereco_receita %}
+        <div class="sugestoes">
+          <b>Endereço do CNPJ na Receita Federal:</b>
+          {{ v.endereco_receita.logradouro }}{% if v.endereco_receita.numero %}, {{ v.endereco_receita.numero }}{% endif %}
+          · {{ v.endereco_receita.bairro }} · {{ v.endereco_receita.cidade }}/{{ v.endereco_receita.uf }}
+          · CEP {{ v.endereco_receita.cep[:5] }}-{{ v.endereco_receita.cep[5:] }}
+          <br><span class="suave">É outra cidade que a do cadastro do Gerência ({{ v.cliente.uf }}). Confirme que o cliente fica lá.</span>
+          <form method="post" action="{{ url_for('aplicar_endereco_receita_rota', lote_id=lote_id) }}"
+                onsubmit="return confirm('Emitir a nota do pedido {{ v.pedido|js }} com o CEP {{ v.endereco_receita.cep[:5]|js }}-{{ v.endereco_receita.cep[5:]|js }} e o município {{ v.endereco_receita.cidade|js }}/{{ v.endereco_receita.uf|js }} (endereço da Receita Federal)? Só confirme se o cliente realmente fica nessa cidade.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <button type="submit" class="botao secundario">Usar CEP e município da Receita ({{ v.endereco_receita.cidade }}/{{ v.endereco_receita.uf }})</button>
+          </form>
+          {% for s in v.endereco_receita.alternativas %}
+          <form method="post" action="{{ url_for('aplicar_endereco_receita_rota', lote_id=lote_id) }}"
+                onsubmit="return confirm('Emitir a nota do pedido {{ v.pedido|js }} com o CEP {{ s.cep[:5]|js }}-{{ s.cep[5:]|js }} e o município {{ v.endereco_receita.cidade|js }}/{{ v.endereco_receita.uf|js }}? Só confirme se o cliente realmente fica nessa cidade.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}"><input type="hidden" name="cep" value="{{ s.cep }}">
+            {{ s.cep[:5] }}-{{ s.cep[5:] }} · {{ s.logradouro }}{% if s.bairro %} · {{ s.bairro }}{% endif %}
+            <button type="submit" class="botao secundario">Usar este CEP em {{ v.endereco_receita.cidade }}/{{ v.endereco_receita.uf }}</button>
+          </form>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if v.endereco_corrigivel %}
+        <details class="sugestoes" {{ 'open' if v.erros }}>
+          <summary>Corrigir o endereço do cliente</summary>
+          <form method="post" action="{{ url_for('corrigir_endereco_cadastro', lote_id=lote_id) }}" class="formulario em-linha"
+                onsubmit="return confirm('Gravar este endereço para o pedido {{ v.pedido|js }}? Vale também para as próximas notas deste cliente.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <label>Logradouro <input name="logradouro" value="{{ v.cliente.logradouro }}" maxlength="255" style="width:260px"></label>
+            <label>Número <input name="numero" value="{{ v.cliente.numero }}" maxlength="60" style="width:80px" placeholder="S/N"></label>
+            <label>Complemento <input name="complemento" value="{{ v.cliente.complemento }}" maxlength="156" style="width:150px"></label>
+            <label>Bairro <input name="bairro" value="{{ v.cliente.bairro }}" maxlength="60" style="width:180px"></label>
+            <button type="submit" class="botao secundario">Salvar endereço</button>
+          </form>
+          <span class="suave">Logradouro e bairro são obrigatórios. Corrija também o cadastro no Gerência.</span>
+        </details>
+        {% endif %}
+        {% if v.retencao_pendente %}
+        <div class="sugestoes">
+          <b>O ISS Net rejeitou (EM059): este cliente é substituto tributário e a retenção do ISS é obrigatória.</b>
+          O valor da nota continua integral ({{ v.valor_total|brl }}); só muda quem recolhe o ISS (o tomador).
+          <form method="post" action="{{ url_for('marcar_iss_retido', lote_id=lote_id) }}"
+                onsubmit="return confirm('Marcar o cliente do pedido {{ v.pedido|js }} como ISS retido pelo tomador? As notas deste cliente (hoje e nas próximas remessas) sairão com tpRetISSQN=2, no valor integral. Confirme com o fiscal/contador se necessário.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <button type="submit" class="botao secundario">Emitir com ISS retido pelo tomador</button>
+          </form>
+        </div>
+        {% elif v.iss_retido %}
+        <form method="post" action="{{ url_for('marcar_iss_retido', lote_id=lote_id) }}" style="margin-top:6px"
+              onsubmit="return confirm('Remover a marca de ISS retido deste cliente? As próximas notas dele saem sem retenção.');">
+          <input type="hidden" name="pedido" value="{{ v.pedido }}"><input type="hidden" name="desfazer" value="1">
+          <button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Desfazer ISS retido deste cliente</button>
+        </form>
+        {% endif %}
+        {% if v.sem_nota_pendente %}
+        <div class="sugestoes">
+          <b>O ISS Net rejeitou (EM030): o CNPJ do tomador está vinculado a mais de uma inscrição municipal.</b>
+          Se a empresa decidir não emitir nota para este cliente, as vendas dele deixam de ir para o ISS Net e ficam em "Sem nota".
+          <form method="post" action="{{ url_for('marcar_sem_nota', lote_id=lote_id) }}"
+                onsubmit="return confirm('Não emitir nota para o cliente do pedido {{ v.pedido|js }}? As vendas dele (hoje e nas próximas remessas) ficam de fora dos lotes e não são enviadas ao ISS Net. Dá para desfazer depois.');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <button type="submit" class="botao secundario">Não emitir nota para este cliente (sem inscrição municipal)</button>
+          </form>
+        </div>
+        {% endif %}
+        {% if v.cep_corrigivel %}
+        <details class="sugestoes">
+          <summary>Digitar o CEP manualmente</summary>
+          <form method="post" action="{{ url_for('corrigir_cep_manual', lote_id=lote_id) }}"
+                onsubmit="return confirm('Aplicar o CEP digitado ao pedido {{ v.pedido|js }}? O município e a UF serão os do CEP (consulta aos Correios).');">
+            <input type="hidden" name="pedido" value="{{ v.pedido }}">
+            <input name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000" required style="width:110px">
+            <button type="submit" class="botao secundario">Aplicar CEP</button>
+          </form>
+        </details>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+  {{ seletor_de_paginas() }}
+</section>
+
+<section class="cartao" id="emissao">
+  <h2>2. {{ "Emitir no ISS Net — PRODUÇÃO" if ambiente == "producao" else "Separar vendas para emissão" }}</h2>
+  {% if ambiente == "producao" %}
+    <div class="alerta-producao">
+      <b>Atenção: notas REAIS, com valor fiscal.</b> Cada clique em Emitir envia até {{ config.ENVIO_POR_CLIQUE_PRODUCAO }} notas;
+      repita até zerar. Estas vendas não podem ser enviadas também pelo emissor anterior. O sistema só emite; cancelamento é feito no portal do ISS Net.
+    </div>
+  {% endif %}
+  {% if ambiente != "producao" %}
+    <p class="suave">Restam <b>{{ remessa.prontas|length }}</b> vendas prontas ({{ remessa.valor_prontas|brl }}) nesta remessa.
+      Ao criar um lote de produção, as vendas escolhidas saem desta lista e vão para o lote, onde são emitidas. Criar o lote não emite nada.</p>
+    <div class="acoes">
+      <form method="post" action="{{ url_for('criar_lote_producao', lote_id=lote_id) }}" class="busca" style="margin:0">
+        <input type="hidden" name="modo" value="proximas">
+        <span>Criar lote de produção com as próximas</span>
+        <input type="number" name="quantidade" min="1" max="{{ config.LIMITE_NOTAS_PRODUCAO_POR_LOTE }}" value="10" style="width:80px">
+        <span>vendas</span>
+        <button type="submit" class="botao secundario">Criar lote</button>
+      </form>
+      <form method="post" action="{{ url_for('criar_lote_producao', lote_id=lote_id) }}"
+            onsubmit="return confirm('Criar o lote de PRODUÇÃO com todas as {{ remessa.prontas|length|js }} vendas restantes? (não emite nada)');">
+        <input type="hidden" name="modo" value="todas">
+        <button type="submit">Criar lote com TODAS as {{ remessa.prontas|length }} vendas restantes</button>
+      </form>
+    </div>
+    <details>
+      <summary>Criar lote de teste (até {{ config.LIMITE_AMOSTRA_PRODUCAO }} vendas, uma de cada pacote)</summary>
+      <form method="post" action="{{ url_for('criar_lote_producao', lote_id=lote_id) }}" class="busca">
+        <input type="hidden" name="modo" value="amostra">
+        <input type="number" name="quantidade" min="1" max="{{ config.LIMITE_AMOSTRA_PRODUCAO }}" value="3" style="width:70px">
+        <span>vendas OK de clientes com uma venda só. Não emite nada.</span>
+        <button type="submit" class="botao secundario">Criar lote de teste</button>
+      </form>
+    </details>
+  {% endif %}
+  {% if ambiente != "producao" %}<details><summary>Testes em homologação (sem valor fiscal — hoje bloqueados pelo ISS Net com EM004)</summary>{% endif %}
+  {% if not certificado %}
+    <p class="aviso">Para emitir, primeiro <a href="{{ url_for('certificado_a1', voltar=url_for('lote', lote_id=lote_id)) }}">carregue o certificado A1</a>.</p>
+  {% else %}
+    <p class="suave">Entram as vendas OK e as de Atenção ({{ remessa.prontas|length }} — {{ remessa.valor_prontas|brl }}). As com Erro ficam de fora até o cadastro ser corrigido.
+      Um pedido nunca recebe duas notas: se um envio anterior ficou sem resposta, o sistema consulta o ISS Net antes de reenviar.</p>
+    <div class="acoes">
+      {% if ambiente == "producao" %}
+      <form method="post" action="{{ url_for('consultar_cadastro') }}">
+        <input type="hidden" name="ambiente" value="producao">
+        <input type="hidden" name="voltar" value="{{ url_for('lote', lote_id=lote_id) }}">
+        <button type="submit" class="botao secundario">1º Consultar cadastro em produção (só leitura)</button>
+      </form>
+      <form method="post" action="{{ url_for('usar_serie_autorizada', lote_id=lote_id) }}">
+        <button type="submit" class="{{ 'botao secundario' if serie_pronta else '' }}">{{ '1º ' if not serie_pronta else '' }}Usar série autorizada com os números disponíveis do ISS Net</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('validar_no_issnet', lote_id=lote_id) }}">
+        <button type="submit" class="botao secundario">1º Validar no ISS Net (não emite)</button>
+      </form>
+      {% endif %}
+      {% if not a_enviar %}<span class="ok">✔ Todas as vendas prontas já têm nota.</span>
+      {% elif ambiente == "producao" and not serie_pronta %}
+      <span class="aviso"><b>Passo obrigatório antes de emitir:</b> clique em <b>"Usar série autorizada…"</b> (ao lado). Ele reserva os números de DPS válidos; sem isso o ISS Net recusa as notas.</span>
+      {% elif not perfil_envio %}
+      <form method="post" action="{{ url_for('diagnostico_assinatura', lote_id=lote_id) }}" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Testando… aguarde';">
+        <button type="submit">2º Diagnóstico de assinatura (envia 1 venda)</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('emitir', lote_id=lote_id) }}" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Enviando… aguarde';">
+        {% if ambiente == "producao" %}
+        <label><input type="checkbox" name="confirmo" value="sim" required>
+          Confirmo a emissão de {{ a_enviar }} nota{{ "s" if a_enviar > 1 }} REAIS, que não irão para o emissor anterior</label>
+        {% endif %}
+        <button type="submit">{{ "3º" if ambiente != "producao" else "2º" }} Emitir {{ a_enviar }} nota{{ "s" if a_enviar > 1 }} em {{ "PRODUÇÃO" if ambiente == "producao" else "homologação" }}</button>
+      </form>
+      <span class="suave">Série da DPS: <b>{{ serie }}</b> · Perfil de assinatura: {{ perfil_envio }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if ambiente != "producao" %}</details>{% endif %}
+
+  {% if envios %}
+  <p class="suave" style="margin-top:16px">
+    {% for s, qtd in situacao_envios.items() %}{{ qtd }} {{ s }}{% if not loop.last %} · {% endif %}{% endfor %}
+  </p>
+  <div class="tabela"><table>
+    <tr><th>Pedido</th><th>DPS</th><th>Situação</th><th>NFS-e</th><th>Mensagens do ISS Net</th><th>Atualizado</th></tr>
+    {% for e in envios %}
+    <tr>
+      <td>{{ e.pedido }}</td>
+      <td>{{ e.serie or "—" }}/{{ e.numero_dps }}</td>
+      <td class="{{ {'autorizada': 'ok', 'pendente': 'aviso'}.get(e.situacao, 'erro') }}">{{ e.situacao }}</td>
+      <td>{{ e.numero_nfse or "—" }}</td>
+      <td>{% if e.mensagens %}<ul class="lista">{% for m in e.mensagens %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+        {% if e.pedido in retencao_pendente %}
+        <form method="post" action="{{ url_for('marcar_iss_retido', lote_id=lote_id) }}"
+              onsubmit="return confirm('Marcar este cliente como ISS retido pelo tomador? A nota sai com tpRetISSQN=2, no valor integral.');">
+          <input type="hidden" name="pedido" value="{{ e.pedido }}">
+          <button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Emitir com ISS retido pelo tomador</button>
+        </form>
+        {% endif %}
+        {% if e.pedido in sem_nota_pendente %}
+        <form method="post" action="{{ url_for('marcar_sem_nota', lote_id=lote_id) }}"
+              onsubmit="return confirm('Não emitir nota para este cliente? As vendas dele ficam de fora dos lotes e não são enviadas ao ISS Net. Dá para desfazer depois.');">
+          <input type="hidden" name="pedido" value="{{ e.pedido }}">
+          <button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Não emitir nota para este cliente (sem inscrição municipal)</button>
+        </form>
+        {% endif %}</td>
+      <td class="suave">{{ e.atualizado_em[11:19] }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+
+  <details>
+    <summary>Gerar DPS sem enviar (simulação)</summary>
+    {% if ja_numerados and not dps_geradas %}
+      <p class="aviso">{{ ja_numerados|length }} pedido(s) já têm DPS numerada (remessa importada antes?). Eles reaproveitam o mesmo número — nenhuma nota em dobro.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('gerar_dps', lote_id=lote_id) }}">
+      <button type="submit" class="botao secundario">Gerar DPS de {{ remessa.prontas|length }} vendas (sem assinar)</button>
+    </form>
+    {% if dps_geradas %}
+      <p class="ok">{{ dps_geradas }} DPS geradas. <a href="{{ url_for('baixar_dps', lote_id=lote_id) }}">Baixar (.zip)</a></p>
+    {% endif %}
+  </details>
+</section>
+
+{% if ambiente == "producao" %}
+<section class="cartao" id="conferencia">
+  <h2>3. Conferência das notas autorizadas</h2>
+  <p class="suave">As notas emitidas acima entram aqui sozinhas. Também dá para enviar XML baixados do ISS Net. Cada nota é conferida com o pedido: cliente, valor e boleto.</p>
+  <form method="post" action="{{ url_for('enviar_notas', lote_id=lote_id) }}" enctype="multipart/form-data">
+    <input type="file" name="notas" accept=".xml" multiple required>
+    <button type="submit">Enviar notas</button>
+  </form>
+  {% if erros_notas %}<ul class="lista erro">{% for e in erros_notas %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  {% if resultados %}
+  <div class="acoes">
+    <a class="botao secundario" href="{{ url_for('baixar_notas', lote_id=lote_id) }}">Baixar XML das notas (.zip)</a>
+    {% if certificado %}
+    <form method="post" action="{{ url_for('buscar_documentos_rota', lote_id=lote_id) }}" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Buscando… aguarde';">
+      <button type="submit" class="botao secundario">Buscar links e PDFs no ISS Net (só leitura)</button>
+    </form>
+    {% endif %}
+    {% if documentos %}<a class="botao secundario" href="{{ url_for('baixar_pdfs', lote_id=lote_id) }}">Baixar PDFs (.zip)</a>{% endif %}
+  </div>
+  {% endif %}
+  {% if resultados %}
+  <div class="tabela"><table>
+    <tr><th>Nota</th><th>Documentos</th><th>Pedido</th><th>Cliente da nota</th><th class="valor">Valor</th><th>Associada por</th><th>Situação</th></tr>
+    {% for r in resultados %}
+    {% set doc = documentos.get(r.nota.numero) %}
+    <tr>
+      <td>{{ r.nota.numero }}</td>
+      <td>
+        {% if doc %}
+          {% if doc.pdf %}<a href="{{ url_for('baixar_pdf', lote_id=lote_id, nome=doc.pdf) }}" target="_blank">PDF</a><br>{% endif %}
+          {% if doc.visualizacao %}<a href="{{ doc.visualizacao }}" target="_blank" rel="noopener">Ver no ISS Net</a><br>{% endif %}
+          {% if doc.nacional %}<a href="{{ doc.nacional }}" target="_blank" rel="noopener">DANFSe nacional</a><br>{% endif %}
+          {% if doc.autenticidade %}<a href="{{ doc.autenticidade }}" target="_blank" rel="noopener">Autenticidade</a><br>{% endif %}
+          {% if doc.consulta_publica %}<a href="{{ doc.consulta_publica }}" target="_blank" rel="noopener">Consulta pública nacional</a>{% endif %}
+        {% else %}<span class="suave">—</span>{% endif %}
+      </td>
+      <td>{{ r.venda.pedido if r.venda else "—" }}</td>
+      <td>{{ r.nota.nome_tomador }}<br><span class="suave">{{ r.nota.documento_tomador }}</span></td>
+      <td class="valor">{{ r.nota.valor_servico|brl }}</td>
+      <td>{{ r.forma_associacao }}</td>
+      <td>{% if r.apta %}<span class="ok">✔ Conferida</span>{% else %}<ul class="lista erro">{% for d in r.divergencias %}<li>{{ d }}</li>{% endfor %}</ul>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="cartao" id="retorno">
+  <h2>{{ "4. Retorno para o Gerência" if ambiente == "producao" else "3. Retorno da remessa inteira para o Gerência" }}</h2>
+  {% if ambiente == "producao" %}
+    {% if aptas %}
+    <div class="acoes">
+      <form method="post" action="{{ url_for('baixar_retorno', lote_id=lote_id) }}">
+        <input type="hidden" name="modo" value="novas">
+        <button type="submit" {{ "disabled" if not aptas_novas }}>Gerar retorno das notas que acabei de emitir ({{ aptas_novas }} nova{{ "s" if aptas_novas != 1 }})</button>
+      </form>
+      <form method="post" action="{{ url_for('baixar_retorno', lote_id=lote_id) }}">
+        <input type="hidden" name="modo" value="todas">
+        <button type="submit" class="botao secundario">Gerar retorno de todas as {{ aptas }} notas deste lote</button>
+      </form>
+    </div>
+    <p class="suave">"Notas que acabei de emitir" = conferidas que ainda não foram em nenhum retorno. Para mandar a remessa inteira de uma vez,
+      espere e gere na página da remessa{% if lote_origem is defined and lote_origem %} (<a href="{{ url_for('lote', lote_id=lote_origem) }}#retorno">abrir remessa</a>){% endif %}.</p>
+    {% else %}<p class="suave">Nenhuma nota conferida ainda.</p>{% endif %}
+  {% else %}
+    {% if retorno_remessa and retorno_remessa.todas %}
+    <p class="suave">Junta as notas de todos os lotes de produção criados desta remessa ({{ retorno_remessa.todas }} conferida{{ "s" if retorno_remessa.todas != 1 }},
+      {{ retorno_remessa.novas }} ainda não enviada{{ "s" if retorno_remessa.novas != 1 }} ao Gerência).</p>
+    <div class="acoes">
+      <form method="post" action="{{ url_for('baixar_retorno_remessa', lote_id=lote_id) }}">
+        <input type="hidden" name="modo" value="novas">
+        <button type="submit" {{ "disabled" if not retorno_remessa.novas }}>Gerar retorno das {{ retorno_remessa.novas }} notas ainda não enviadas</button>
+      </form>
+      <form method="post" action="{{ url_for('baixar_retorno_remessa', lote_id=lote_id) }}">
+        <input type="hidden" name="modo" value="todas">
+        <button type="submit" class="botao secundario">Gerar retorno da remessa inteira ({{ retorno_remessa.todas }} notas)</button>
+      </form>
+    </div>
+    {% else %}<p class="suave">Nenhuma nota emitida ainda a partir desta remessa.</p>{% endif %}
+  {% endif %}
+  <p class="suave">O arquivo também é salvo em {{ config.PASTA_RETORNO_GERENCIA }}. O Gerência ignora pedidos que já recebeu, então repetir uma nota não duplica nada.
+    Links: {{ "consulta pública nacional (provisório)" if config.MODO_URLS_RETORNO == "consulta_publica" else config.URL_BASE_ARQUIVOS }}.</p>
+  {% if retornos %}
+  <details><summary>Retornos já gerados neste lote ({{ retornos|length }})</summary>
+    <div class="tabela"><table>
+      <tr><th>Arquivo</th><th class="valor">Notas</th><th>Modo</th><th>Quando</th><th>Quem</th></tr>
+      {% for r in retornos %}<tr><td>{{ r.arquivo }}</td><td class="valor">{{ r.notas|length }}</td><td>{{ r.modo }}</td>
+        <td class="suave">{{ r.gerado_em[:16]|replace('T', ' ') }}</td><td>{{ r.usuario }}</td></tr>{% endfor %}
+    </table></div>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}

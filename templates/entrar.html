@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<div class="cartao estreito">
+  <h1>Entrar</h1>
+  <form method="post" class="formulario">
+    <input type="hidden" name="proxima" value="{{ proxima }}">
+    <label>Login <input name="login" autocomplete="username" required autofocus></label>
+    <label>Senha
+      <span class="campo-senha">
+        <input type="password" name="senha" id="senha" autocomplete="current-password" required>
+        <button type="button" class="ver-senha" id="ver-senha" aria-label="Mostrar senha" title="Mostrar senha">
+          <svg id="olho" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            <line id="risco" x1="3" y1="3" x2="21" y2="21" style="display:none"/>
+          </svg>
+        </button>
+      </span>
+    </label>
+    <button type="submit">Entrar</button>
+  </form>
+  <p class="suave">Esqueceu a senha? Peça ao administrador do sistema para definir uma nova.</p>
+</div>
+<style>
+  .campo-senha { position:relative; display:block; }
+  .campo-senha input { width:100%; padding-right:40px; box-sizing:border-box; }
+  .ver-senha { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:0; padding:4px;
+               cursor:pointer; color:inherit; opacity:.65; line-height:0; }
+  .ver-senha:hover, .ver-senha:focus-visible { opacity:1; }
+</style>
+<script>
+  (function () {
+    var campo = document.getElementById("senha"), botao = document.getElementById("ver-senha"), risco = document.getElementById("risco");
+    botao.addEventListener("click", function () {
+      var mostrar = campo.type === "password";
+      campo.type = mostrar ? "text" : "password";
+      risco.style.display = mostrar ? "" : "none";
+      botao.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Mostrar senha");
+      botao.title = botao.getAttribute("aria-label");
+      campo.focus();
+    });
+  })();
+</script>
+{% endblock %}

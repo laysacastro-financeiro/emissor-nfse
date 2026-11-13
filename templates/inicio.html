@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% macro tabela_remessas(linhas) %}
+<div class="tabela"><table>
+  <tr><th>Remessa</th><th class="valor">Vendas</th><th class="valor">Emitidas</th><th class="valor">Retorno gerado</th><th>Situação</th><th>O que falta</th><th></th></tr>
+  {% for r in linhas %}
+  <tr>
+    <td>
+      <a href="{{ url_for('lote', lote_id=r.id) }}"><b>{{ r.arquivo }}</b></a><br>
+      <span class="suave">{{ r.data }} · {{ r.id }}{% if r.avulso %} · lote de produção sem remessa{% endif %}</span>
+    </td>
+    <td class="valor">{{ r.vendas }}{% if r.sem_nota %}<br><span class="suave" style="font-size:12px">+ {{ r.sem_nota }} sem nota</span>{% endif %}</td>
+    <td class="valor">{{ r.emitidas }}{% if r.emitidas == r.vendas %} <span class="ok">✔</span>{% endif %}</td>
+    <td class="valor">{{ r.retornadas }}{% if r.emitidas and r.retornadas == r.emitidas %} <span class="ok">✔</span>{% endif %}</td>
+    <td>
+      {% if r.situacao == 'completa' %}<span class="status completa">✔ Completa</span>
+      {% elif r.situacao == 'erro' %}<span class="status erro">✖ Com erros</span>
+      {% elif r.situacao == 'emitindo' %}<span class="status emitindo">⏳ Em emissão</span>
+      {% elif r.situacao == 'retorno' %}<span class="status retorno">⚠ Falta retorno</span>
+      {% else %}<span class="status nova">Ainda não emitida</span>{% endif %}
+    </td>
+    <td>
+      {% if r.situacao == 'completa' %}
+        <span class="suave">Tudo emitido e com retorno gerado.</span>
+      {% else %}
+      <ul class="lista">
+        {% if r.rejeitadas %}<li class="erro"><b>{{ r.rejeitadas }}</b> rejeitada{{ 's' if r.rejeitadas > 1 }} pelo ISS Net — troque o CEP e emita de novo
+          ({% for lp in r.lotes_com_problema %}<a href="{{ url_for('lote', lote_id=lp) }}#vendas">lote {{ lp }}</a>{{ ', ' if not loop.last }}{% endfor %})</li>{% endif %}
+        {% if r.pendentes %}<li class="erro"><b>{{ r.pendentes }}</b> pendente{{ 's' if r.pendentes > 1 }} de confirmação no ISS Net — emitir de novo consulta antes de reenviar</li>{% endif %}
+        {% if r.bloqueadas %}<li class="erro"><b>{{ r.bloqueadas }}</b> com erro de cadastro (CPF/CNPJ ou endereço) — corrigir no Gerência e importar de novo</li>{% endif %}
+        {% if r.sem_lote %}<li class="aviso"><b>{{ r.sem_lote }}</b> sem lote de produção — <a href="{{ url_for('lote', lote_id=r.id) }}#emissao">criar lote</a></li>{% endif %}
+        {% if r.no_lote %}<li class="aviso"><b>{{ r.no_lote }}</b> em lote de produção, ainda sem nota emitida</li>{% endif %}
+        {% if r.sem_retorno %}<li class="aviso"><b>{{ r.sem_retorno }}</b> nota{{ 's' if r.sem_retorno > 1 }} emitida{{ 's' if r.sem_retorno > 1 }} sem arquivo de retorno —
+          <a href="{{ url_for('lote', lote_id=r.id) }}#retorno">gerar retorno</a>
+</li>{% endif %}
+      </ul>
+      {% endif %}
+    </td>
+    <td>
+      {% if r.arquivada %}
+      <form method="post" action="{{ url_for('desarquivar_remessa', lote_id=r.id) }}"><button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Desarquivar</button></form>
+      <span class="suave" style="font-size:12px">{{ r.arquivada.usuario }} · {{ r.arquivada.motivo }}</span>
+      {% elif r.situacao != 'completa' %}
+      <form method="post" action="{{ url_for('arquivar_remessa', lote_id=r.id) }}"
+            onsubmit="var m = prompt('Arquivar tira esta remessa da lista de pendências (nada é apagado e dá para desfazer). Motivo:', 'remessa abandonada'); if (m === null) { return false; } this.motivo.value = m;">
+        <input type="hidden" name="motivo"><button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Arquivar</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% endmacro %}
+
+{% block conteudo %}
+<h1>Emissor NFS-e</h1>
+<p class="suave">Situação de cada remessa do Gerência: o que já foi emitido, o que já voltou para o Gerência e o que ainda falta.</p>
+
+<form method="get" action="{{ url_for('inicio') }}" class="busca" style="margin-bottom:8px">
+  <label>De <input type="date" name="de" value="{{ periodo.de }}"></label>
+  <label>Até <input type="date" name="ate" value="{{ periodo.ate }}"></label>
+  <button type="submit">Filtrar</button>
+  {% if periodo.de or periodo.ate %}<a class="botao secundario" href="{{ url_for('inicio') }}">Limpar filtro</a>{% endif %}
+  <span class="suave">Atalhos:
+    {% for nome, a, b in atalhos %}<a href="{{ url_for('inicio', de=a, ate=b) }}">{{ nome }}</a>{{ ' · ' if not loop.last }}{% endfor %}</span>
+</form>
+<p class="suave">
+  {% if periodo.de or periodo.ate %}
+  Mostrando só as remessas importadas
+  {% if periodo.de %}a partir de <b>{{ periodo.de[8:10] }}/{{ periodo.de[5:7] }}/{{ periodo.de[:4] }}</b>{% endif %}
+  {% if periodo.de and periodo.ate %} e {% endif %}
+  {% if periodo.ate %}até <b>{{ periodo.ate[8:10] }}/{{ periodo.ate[5:7] }}/{{ periodo.ate[:4] }}</b>{% endif %}
+  — os números abaixo e as listas valem só para esse período.
+  {% else %}
+  Todas as remessas. O filtro de datas vale pela data em que a remessa foi importada.
+  {% endif %}
+</p>
+
+<div class="numeros compactos">
+  <div class="numero"><span class="suave">Remessas completas</span><b class="{{ 'ok' if painel.resumo.completas == painel.resumo.remessas else '' }}">{{ painel.resumo.completas }} de {{ painel.resumo.remessas }}</b></div>
+  <div class="numero"><span class="suave">Notas emitidas</span><b>{{ painel.resumo.emitidas }}</b></div>
+  <div class="numero"><span class="suave">Total R$ de notas emitidas</span><b>{{ painel.resumo.valor_emitido|brl }}</b></div>
+  <div class="numero"><span class="suave">Sem arquivo de retorno</span><b class="{{ 'aviso' if painel.resumo.sem_retorno else 'ok' }}">{{ painel.resumo.sem_retorno }}</b></div>
+  <div class="numero"><span class="suave">Rejeitadas / pendentes</span><b class="{{ 'erro' if painel.resumo.rejeitadas else 'ok' }}">{{ painel.resumo.rejeitadas }}</b></div>
+  <div class="numero"><span class="suave">Erro de cadastro (bloqueadas)</span><b class="{{ 'erro' if painel.resumo.bloqueadas else 'ok' }}">{{ painel.resumo.bloqueadas }}</b></div>
+  <div class="numero"><span class="suave">Ainda a emitir</span><b class="{{ 'aviso' if painel.resumo.a_emitir else 'ok' }}">{{ painel.resumo.a_emitir }}</b></div>
+  {% if painel.resumo.sem_nota %}<div class="numero"><span class="suave">Sem nota (decisão da empresa)</span><b>{{ painel.resumo.sem_nota }}</b></div>{% endif %}
+</div>
+
+<div class="cartao">
+  <h2>Precisam de atenção ({{ painel.atencao|length }})</h2>
+  {% if painel.atencao %}
+  {{ tabela_remessas(painel.atencao) }}
+  {% else %}
+  <p class="ok"><b>✔ Nenhuma pendência.</b> Todas as remessas estão completas.</p>
+  {% endif %}
+</div>
+
+<div class="cartao">
+  <h2>Remessas completas ({{ painel.completas|length }})</h2>
+  <p class="suave">Todas as vendas emitidas, sem rejeição, sem pendência e com o arquivo de retorno já gerado para o Gerência.</p>
+  {% if painel.completas %}
+  {{ tabela_remessas(painel.completas) }}
+  {% else %}
+  <p class="suave">Nenhuma remessa completa ainda.</p>
+  {% endif %}
+</div>
+
+{% if painel.sem_nota %}
+<div class="cartao" id="sem-nota">
+  <h2>Sem nota — decisão da empresa ({{ painel.sem_nota|length }})</h2>
+  <p class="suave">Vendas de clientes para os quais a empresa decidiu não emitir nota (ISS Net recusa com EM030). Não vão para o ISS Net
+    e não contam como erro. <a href="{{ url_for('sem_nota_csv', de=periodo.de, ate=periodo.ate) }}">Baixar a lista em .csv</a>
+    para o financeiro acompanhar ou avisar o Gerência.</p>
+  <div class="tabela"><table>
+    <tr><th>Pedido</th><th>Cliente</th><th>CPF/CNPJ</th><th>Boleto</th><th class="valor">Valor</th><th>Remessa</th><th>Decisão</th><th></th></tr>
+    {% for s in painel.sem_nota %}
+    <tr>
+      <td>{{ s.pedido }}</td><td>{{ s.cliente }}</td><td>{{ s.documento }}</td><td>{{ s.boleto or "—" }}</td>
+      <td class="valor">{{ s.valor|brl }}</td>
+      <td><a href="{{ url_for('lote', lote_id=s.remessa) }}">{{ s.arquivo }}</a><br><span class="suave">{{ s.data }}</span></td>
+      <td class="suave">{{ s.motivo }}<br>{{ s.usuario }}{% if s.em %} · {{ s.em[8:10] }}/{{ s.em[5:7] }}/{{ s.em[:4] }}{% endif %}</td>
+      <td>
+        <form method="post" action="{{ url_for('desfazer_sem_nota') }}"
+              onsubmit="return confirm('Voltar a emitir nota para este cliente? As vendas dele voltam para os lotes.');">
+          <input type="hidden" name="documento" value="{{ s.documento }}">
+          <input type="hidden" name="voltar" value="{{ request.full_path.rstrip('?') }}">
+          <button type="submit" class="botao secundario" style="padding:2px 8px;font-size:12px">Voltar a emitir nota</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endif %}
+
+{% if painel.arquivadas %}
+<details class="cartao">
+  <summary>Remessas arquivadas ({{ painel.arquivadas|length }}) — fora da lista de pendências</summary>
+  {{ tabela_remessas(painel.arquivadas) }}
+</details>
+{% endif %}
+
+<div class="cartao">
+  <h2>Importar nova remessa do Gerência</h2>
+  <p class="suave">Envie o arquivo TXT exportado do Gerência (ex.: NFE_PROD_2026-10-01.txt). O sistema lê, valida e mostra as pendências antes de qualquer emissão.</p>
+  <form method="post" action="{{ url_for('importar') }}" enctype="multipart/form-data">
+    <input type="file" name="remessa" accept=".txt" required>
+    <button type="submit">Importar e validar</button>
+  </form>
+</div>
+
+<details class="cartao">
+  <summary>Todos os lotes ({{ lotes|length }}) — detalhe por lote</summary>
+  {% if lotes %}
+  <div class="tabela"><table>
+    <tr><th>Lote</th><th>Arquivo</th><th>Tipo</th><th class="valor">Vendas</th><th class="valor">Notas emitidas</th><th class="valor">No Gerência</th><th></th></tr>
+    {% for l in lotes %}
+    <tr>
+      <td><a href="{{ url_for('lote', lote_id=l.id) }}">{{ l.id }}</a></td>
+      <td>{{ l.arquivo }}{% if l.origem %}<br><span class="suave">da remessa <a href="{{ url_for('lote', lote_id=l.origem) }}">{{ l.origem }}</a></span>{% endif %}</td>
+      <td>{% if l.ambiente == 'producao' %}<b class="erro">PRODUÇÃO</b>{% else %}remessa importada{% endif %}</td>
+      <td class="valor">{{ l.vendas }}</td>
+      <td class="valor">{% if l.ambiente == 'producao' %}{{ l.autorizadas }}{% if l.pendentes %} <span class="aviso">({{ l.pendentes }} pendente{{ "s" if l.pendentes > 1 }})</span>{% endif %}{% else %}—{% endif %}</td>
+      <td class="valor">{% if l.ambiente == 'producao' %}{{ l.retornadas }}{% else %}—{% endif %}</td>
+      <td>
+        {% if l.pode_excluir %}
+        <form method="post" action="{{ url_for('excluir_lote', lote_id=l.id) }}"
+              onsubmit="return confirm('Excluir o lote {{ l.id|js }} ({{ l.arquivo|js }})? Ele vai para a lixeira.');">
+          <button type="submit" class="botao perigo">Excluir</button>
+        </form>
+        {% else %}<span class="suave" title="Lote com notas emitidas é registro fiscal e não pode ser excluído.">—</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  <p class="suave">Só lotes sem nenhuma nota emitida podem ser excluídos. O lote excluído vai para a lixeira (dados\lixeira) e pode ser recuperado.</p>
+  {% else %}
+  <p class="suave">Nenhum lote ainda.</p>
+  {% endif %}
+</details>
+
+<p class="suave">Série da DPS: definida pelo ISS Net em cada lote de produção (botão "Usar série autorizada").</p>
+{% endblock %}
+

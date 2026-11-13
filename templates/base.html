@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Emissor NFS-e{% endblock %}</title>
+<style>
+  :root { --fundo:#f5f6f8; --cartao:#fff; --texto:#1f2430; --suave:#667085; --borda:#e1e4ea;
+          --azul:#1d4ed8; --verde:#15803d; --verde-claro:#e8f5ec; --vermelho:#b42318; --vermelho-claro:#fdecea;
+          --amarelo:#a15c07; --amarelo-claro:#fef4e2; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 system-ui, "Segoe UI", sans-serif; background:var(--fundo); color:var(--texto); }
+  header { background:#111827; color:#fff; padding:12px 24px; display:flex; gap:16px; align-items:center; }
+  header a { color:#fff; text-decoration:none; font-weight:600; }
+  header a.cert { font-weight:500; font-size:13px; }
+  nav.menu { margin-left:auto; display:flex; gap:16px; align-items:center; font-size:13px; }
+  nav.menu form { margin:0; }
+  button.link { background:none; border:0; color:#fff; padding:0; font-weight:600; text-decoration:underline; }
+  .estreito { max-width:460px; margin:40px auto; }
+  .formulario { display:flex; flex-direction:column; gap:12px; }
+  .formulario.em-linha { flex-direction:row; flex-wrap:wrap; align-items:flex-end; }
+  .formulario label { display:flex; flex-direction:column; gap:4px; font-weight:600; font-size:13px; }
+  .formulario label.caixa { flex-direction:row; align-items:center; font-weight:400; }
+  .formulario input:not([type=checkbox]) { padding:8px 10px; border:1px solid var(--borda); border-radius:6px; font:inherit; }
+  .botao.perigo { background:#fff; color:var(--vermelho); border:1px solid var(--vermelho); }
+  .selo.producao { background:#dc2626; color:#fff; }
+  .alerta-producao { background:var(--vermelho-claro); border:2px solid var(--vermelho); border-radius:8px; padding:12px 16px; }
+  .sugestoes { background:var(--amarelo-claro); border-radius:6px; padding:6px 10px; margin-top:6px; }
+  .sugestoes form { display:flex; gap:8px; align-items:center; margin:4px 0; }
+  .sugestoes button { padding:3px 10px; font-size:12px; }
+  .sugestoes .selo { display:block; font-size:12px; font-weight:600; color:var(--verde, #166534); margin-top:4px; }
+  .acoes { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; }
+  details summary { cursor:pointer; color:var(--suave); margin-top:12px; }
+  .selo { background:#f59e0b; color:#111; border-radius:4px; padding:2px 8px; font-size:12px; font-weight:700; }
+  main { max-width:1200px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:0 0 12px; }
+  .suave { color:var(--suave); }
+  .cartao { background:var(--cartao); border:1px solid var(--borda); border-radius:8px; padding:16px 20px; margin:16px 0; }
+  .numeros { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; }
+  .numero { border:1px solid var(--borda); border-radius:8px; padding:10px 14px; background:#fff; }
+  .numero b { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
+  /* Painel do início: quadros pequenos, do tamanho do conteúdo; o número fica sempre inteiro dentro do quadro. */
+  .numeros.compactos { display:flex; flex-wrap:wrap; gap:8px; }
+  .numeros.compactos .numero { display:flex; flex-direction:column; gap:4px; min-width:112px; padding:8px 12px; }
+  .numeros.compactos .numero span { display:block; max-width:132px; font-size:12px; line-height:1.25; }
+  .numeros.compactos .numero b { margin-top:auto; font-size:19px; line-height:1.2; white-space:nowrap; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--borda); vertical-align:top; }
+  th { color:var(--suave); font-weight:600; }
+  td.valor { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tabela { overflow-x:auto; }
+  .ok { color:var(--verde); } .erro { color:var(--vermelho); } .aviso { color:var(--amarelo); }
+  .msg { padding:10px 14px; border-radius:6px; margin:12px 0; }
+  .msg.ok { background:var(--verde-claro); } .msg.erro { background:var(--vermelho-claro); }
+  button, .botao { background:var(--azul); color:#fff; border:0; border-radius:6px; padding:9px 16px;
+                   font:inherit; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
+  .botao.secundario { background:#fff; color:var(--azul); border:1px solid var(--azul); }
+  a.filtro-card { text-decoration:none; color:inherit; }
+  a.filtro-card:hover { border-color:var(--azul); }
+  a.filtro-card.ativo { border:2px solid var(--azul); }
+  form.busca { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:16px 0 4px; }
+  form.busca input[type=search] { flex:1 1 280px; padding:8px 10px; border:1px solid var(--borda); border-radius:6px; font:inherit; }
+  form.busca select { padding:8px; border:1px solid var(--borda); border-radius:6px; font:inherit; max-width:100%; }
+  .status { display:inline-block; border-radius:12px; padding:2px 10px; font-size:12px; font-weight:700; white-space:nowrap; }
+  .status.completa { background:var(--verde-claro); color:var(--verde); }
+  .status.erro { background:var(--vermelho-claro); color:var(--vermelho); }
+  .status.retorno { background:var(--amarelo-claro); color:var(--amarelo); }
+  .status.emitindo { background:#e8eefc; color:var(--azul); }
+  .status.nova { background:#eef0f3; color:var(--suave); }
+  .paginacao { display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:center; margin:12px 0; }
+  .paginacao a, .paginacao .pagina-atual { padding:5px 11px; border:1px solid var(--borda); border-radius:6px;
+                                           text-decoration:none; background:#fff; }
+  .paginacao a:hover { border-color:var(--azul); }
+  .paginacao .pagina-atual { background:var(--azul); border-color:var(--azul); color:#fff; font-weight:600; }
+  .paginacao .reticencias { padding:0 4px; color:#777; }
+  ul.lista { margin:4px 0; padding-left:18px; }
+</style>
+</head>
+<body>
+<header><a href="{{ url_for('inicio') }}">Emissor NFS-e</a>
+  {% if ambiente is defined and ambiente == 'producao' %}<span class="selo producao">PRODUÇÃO — NOTAS COM VALOR FISCAL</span>
+  {% elif ambiente is defined %}<span class="selo">REMESSA IMPORTADA — AINDA NÃO EMITE</span>{% endif %}
+  {% if usuario %}
+  <nav class="menu">
+    <a class="cert" href="{{ url_for('certificado_a1') }}">{% if certificado %}🔒 Certificado carregado{% else %}⚠ Certificado não carregado{% endif %}</a>
+    {% if usuario.admin %}<a href="{{ url_for('usuarios') }}">Usuários</a><a href="{{ url_for('auditoria') }}">Auditoria</a>{% endif %}
+    <a href="{{ url_for('minha_senha') }}">{{ usuario.nome.split(' ')[0] }}</a>
+    <form method="post" action="{{ url_for('sair') }}"><button type="submit" class="link">Sair</button></form>
+  </nav>
+  {% endif %}
+</header>
+<main>
+  {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+    <div class="msg {{ categoria }}">{{ mensagem }}</div>
+  {% endfor %}
+  {% block conteudo %}{% endblock %}
+</main>
+<script>
+  // Todo formulário POST leva o token anti-CSRF da sessão.
+  document.querySelectorAll('form[method="post"]').forEach(function (f) {
+    var campo = document.createElement('input');
+    campo.type = 'hidden'; campo.name = 'csrf_token'; campo.value = '{{ csrf_token }}';
+    f.appendChild(campo);
+  });
+</script>
+</body>
+</html>

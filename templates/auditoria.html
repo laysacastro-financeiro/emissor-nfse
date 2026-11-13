@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Auditoria — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<h1>Auditoria</h1>
+<p class="suave">Últimas {{ linhas|length }} ações, da mais recente para a mais antiga (data | usuário | computador | ação).</p>
+<div class="cartao">
+  {% if linhas %}
+  <div class="tabela"><table>
+    <tr><th>Quando</th><th>Usuário</th><th>Computador</th><th>Ação</th></tr>
+    {% for linha in linhas %}{% set p = linha.split(' | ', 3) %}
+    <tr><td class="suave" style="white-space:nowrap">{{ p[0] }}</td><td>{{ p[1] }}</td><td class="suave">{{ p[2] }}</td><td>{{ p[3] }}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<p class="suave">Nenhuma ação registrada ainda.</p>{% endif %}
+</div>
+{% endblock %}

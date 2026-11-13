@@ -1,0 +1,190 @@
+<ConsultarNfseServicoPrestadoResposta xmlns="http://www.sped.fazenda.gov.br/nfse">
+  <ListaNfse>
+    <CompNfse>
+      <NFSe versao="1.01">
+        <infNFSe Id="NFS53001081211222333000181000000077063626101792006500">
+          <xLocEmi>Brasília</xLocEmi>
+          <xLocPrestacao>Brasília</xLocPrestacao>
+          <nNFSe>770636</nNFSe>
+          <cLocIncid>5300108</cLocIncid>
+          <xLocIncid>Brasília</xLocIncid>
+          <xTribNac>Licenciamento ou cessão de direito de uso de programas de computação.</xTribNac>
+          <xTribMun>Licenciamento ou cessão de direito de uso de programas de computação.</xTribMun>
+          <xNBS>Licenciamento de direitos de uso de programas de computador (software)</xNBS>
+          <verAplic>ISSNET v7.10.1.0</verAplic>
+          <ambGer>1</ambGer>
+          <tpEmis>2</tpEmis>
+          <cStat>100</cStat>
+          <dhProc>2026-10-14T16:35:07-03:00</dhProc>
+          <nDFSe>770636</nDFSe>
+          <emit>
+            <CNPJ>11222333000181</CNPJ>
+            <IM>0000000000001</IM>
+            <xNome>EMPRESA EXEMPLO LTDA</xNome>
+            <xFant>PORTAL EXEMPLO</xFant>
+            <enderNac>
+              <xLgr>RUA EXEMPLO 100</xLgr>
+              <nro>0</nro>
+              <xBairro>ZONA INDUSTRIAL</xBairro>
+              <cMun>5300108</cMun>
+              <UF>DF</UF>
+              <CEP>70040010</CEP>
+            </enderNac>
+            <fone>1100000000</fone>
+            <email>contato@example.com</email>
+          </emit>
+          <valores>
+            <vBC>129.00</vBC>
+            <pAliqAplic>2.00</pAliqAplic>
+            <vISSQN>2.58</vISSQN>
+            <vLiq>129.00</vLiq>
+          </valores>
+          <xOutInf>PROCON: TEL 151 SETOR COMERCIAL SUL, QUADRA 8, BLOCO B60, SALA 240 BRASILIA  DF</xOutInf>
+          <IBSCBS>
+            <cLocalidadeIncid>1600501</cLocalidadeIncid>
+            <xLocalidadeIncid>Oiapoque</xLocalidadeIncid>
+            <valores>
+              <vBC>126.42</vBC>
+              <uf>
+                <pIBSUF>0.10</pIBSUF>
+                <pAliqEfetUF>0.10</pAliqEfetUF>
+              </uf>
+              <mun>
+                <pIBSMun>0.00</pIBSMun>
+                <pAliqEfetMun>0.00</pAliqEfetMun>
+              </mun>
+              <fed>
+                <pCBS>0.90</pCBS>
+                <pAliqEfetCBS>0.90</pAliqEfetCBS>
+              </fed>
+            </valores>
+            <totCIBS>
+              <vTotNF>129.00</vTotNF>
+              <gIBS>
+                <vIBSTot>0.13</vIBSTot>
+                <gIBSUFTot>
+                  <vIBSUF>0.13</vIBSUF>
+                </gIBSUFTot>
+                <gIBSMunTot>
+                  <vIBSMun>0.00</vIBSMun>
+                </gIBSMunTot>
+              </gIBS>
+              <gCBS>
+                <vCBS>1.14</vCBS>
+              </gCBS>
+            </totCIBS>
+          </IBSCBS>
+          <DPS versao="1.01">
+            <infDPS Id="DPS530010821122233300018170001000000000770636">
+              <tpAmb>1</tpAmb>
+              <dhEmi>2026-10-14T16:35:07-03:00</dhEmi>
+              <verAplic>ISSNET v7.10.1.0</verAplic>
+              <serie>70001</serie>
+              <nDPS>770636</nDPS>
+              <dCompet>2026-10-14</dCompet>
+              <tpEmit>1</tpEmit>
+              <cLocEmi>5300108</cLocEmi>
+              <prest>
+                <CNPJ>11222333000181</CNPJ>
+                <IM>0000000000001</IM>
+                <fone>1100000000</fone>
+                <email>contato@example.com</email>
+                <regTrib>
+                  <opSimpNac>1</opSimpNac>
+                  <regEspTrib>0</regEspTrib>
+                </regTrib>
+              </prest>
+              <toma>
+                <CNPJ>10001053000180</CNPJ>
+                <xNome>CLIENTE EXEMPLO LTDA</xNome>
+                <end>
+                  <endNac>
+                    <cMun>1600501</cMun>
+                    <CEP>68980000</CEP>
+                  </endNac>
+                  <xLgr>RUA EXEMPLO</xLgr>
+                  <nro>74</nro>
+                  <xCpl>COMPL</xCpl>
+                  <xBairro>PARAISO</xBairro>
+                </end>
+              </toma>
+              <serv>
+                <locPrest>
+                  <cLocPrestacao>5300108</cLocPrestacao>
+                </locPrest>
+                <cServ>
+                  <cTribNac>010501</cTribNac>
+                  <cTribMun>000</cTribMun>
+                  <xDescServ>Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo de Avulso de uso do Portal Exemplo, boleto IU1612217.;1.000;129.0000</xDescServ>
+                  <cNBS>111032200</cNBS>
+                </cServ>
+                <infoCompl>
+                  <xInfComp>Conforme SC Cosit n° 157/2023 e 243/2017, ficam dispensadas as retenções na fonte do licenciamento ou cessão de uso de software sem que o contratoestabeleça a prestação do serviço de programação. | Inf. A. T. Mun.: PROCON: TEL 151 SETOR COMERCIAL SUL, QUADRA 8, BLOCO B60, SALA 240 BRASILIA DF | | TotaisAproximados dos Tributos cfe. Lei Nº12.741/2012: Federais: 0%; Estaduais:0%; Municipais:0%;</xInfComp>
+                </infoCompl>
+              </serv>
+              <valores>
+                <vServPrest>
+                  <vServ>129.00</vServ>
+                </vServPrest>
+                <trib>
+                  <tribMun>
+                    <tribISSQN>1</tribISSQN>
+                    <tpRetISSQN>1</tpRetISSQN>
+                    <pAliq>2.00</pAliq>
+                  </tribMun>
+                  <tribFed>
+                    <piscofins>
+                      <CST>00</CST>
+                      <tpRetPisCofins>0</tpRetPisCofins>
+                    </piscofins>
+                  </tribFed>
+                  <totTrib>
+                    <pTotTrib>
+                      <pTotTribFed>0.00</pTotTribFed>
+                      <pTotTribEst>0.00</pTotTribEst>
+                      <pTotTribMun>0.00</pTotTribMun>
+                    </pTotTrib>
+                  </totTrib>
+                </trib>
+              </valores>
+              <IBSCBS>
+                <finNFSe>0</finNFSe>
+                <cIndOp>100501</cIndOp>
+                <indDest>0</indDest>
+                <valores>
+                  <trib>
+                    <gIBSCBS>
+                      <CST>000</CST>
+                      <cClassTrib>000001</cClassTrib>
+                    </gIBSCBS>
+                  </trib>
+                </valores>
+              </IBSCBS>
+            </infDPS>
+          </DPS>
+        </infNFSe>
+        <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+          <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+            <Reference URI="#NFS53001081211222333000181000000077063626101792006500">
+              <Transforms>
+                <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+                <Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+              </Transforms>
+              <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+              <DigestValue>6WGLz80kiLGRU68Q8GVE79oNvH0=</DigestValue>
+            </Reference>
+          </SignedInfo>
+          <SignatureValue>XxOn8pK9E2JpN3clMv1X0IDO7p0+Pz9PHxY9JdulSMGWthi2Bx5WeGVXC77HF+5+EHLIpUBjm1FmneUvmOs3rQRTJJuZh6u4GJj0+M0J6rsxOh+OTZWBYHo5JgZEjzy2p7WTSzPxJOskmfcOLOcSeucaH94HWLE3gl5ZX6N+kNrsw0vu0dAIotwIBFkBS/gzrOxCQ/IdsF3MdXkbxPohOSuPsvC0UpiQoIpcPi7jYQzTYaV/Ia6jzwuSE85Dv3YZ4p7i5gsi22qKx7wAG3lsxuVwS46IjTkVVRuGRyWX2XcuqZUGO/iFd49gglvzWbejcW9y7FoGl1wWtHvtG6lnyQ==</SignatureValue>
+          <KeyInfo>
+            <X509Data>
+              <X509Certificate>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</X509Certificate>
+            </X509Data>
+          </KeyInfo>
+        </Signature>
+      </NFSe>
+    </CompNfse>
+    <Pagina>1</Pagina>
+  </ListaNfse>
+</ConsultarNfseServicoPrestadoResposta>

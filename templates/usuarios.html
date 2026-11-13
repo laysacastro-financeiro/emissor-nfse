@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Usuários — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<h1>Usuários</h1>
+<p class="suave">Cada pessoa da equipe entra com o próprio login. Tudo o que é feito (importar, criar lote, emitir, gerar retorno, excluir) fica registrado na <a href="{{ url_for('auditoria') }}">auditoria</a> com o nome de quem fez.</p>
+
+<div class="cartao">
+  <h2>Cadastrar usuário</h2>
+  <form method="post" class="formulario em-linha">
+    <input type="hidden" name="acao" value="criar">
+    <label>Nome <input name="nome" required></label>
+    <label>Login <input name="login" pattern="[a-z0-9._\-]{3,30}" placeholder="ex.: maria.silva" required></label>
+    <label>Senha inicial <input type="password" name="senha" minlength="8" autocomplete="new-password" required></label>
+    <label>Confirme <input type="password" name="confirmacao" minlength="8" autocomplete="new-password" required></label>
+    <label class="caixa"><input type="checkbox" name="admin" value="sim"> Administrador</label>
+    <button type="submit">Cadastrar</button>
+  </form>
+  <p class="suave">Passe a senha inicial pessoalmente; a pessoa troca em "Minha senha" no primeiro acesso.</p>
+</div>
+
+<div class="cartao">
+  <h2>Equipe</h2>
+  <div class="tabela"><table>
+    <tr><th>Login</th><th>Nome</th><th>Perfil</th><th>Situação</th><th>Cadastrado em</th><th>Ações</th></tr>
+    {% for login, u in lista %}
+    <tr>
+      <td>{{ login }}</td>
+      <td>{{ u.nome }}</td>
+      <td>{{ "Administrador" if u.admin else "Operador" }}</td>
+      <td class="{{ 'ok' if u.ativo else 'erro' }}">{{ "Ativo" if u.ativo else "Desativado" }}</td>
+      <td class="suave">{{ u.criado_em[:10] }}</td>
+      <td>
+        {% if login != usuario.login %}
+        <form method="post" style="display:inline">
+          <input type="hidden" name="login" value="{{ login }}">
+          <input type="hidden" name="acao" value="{{ 'desativar' if u.ativo else 'reativar' }}">
+          <button type="submit" class="botao secundario">{{ "Desativar" if u.ativo else "Reativar" }}</button>
+        </form>
+        {% endif %}
+        <details style="display:inline-block">
+          <summary>Nova senha</summary>
+          <form method="post" class="formulario em-linha">
+            <input type="hidden" name="login" value="{{ login }}">
+            <input type="hidden" name="acao" value="nova_senha">
+            <input type="password" name="senha" minlength="8" placeholder="nova senha" autocomplete="new-password" required>
+            <input type="password" name="confirmacao" minlength="8" placeholder="confirme" autocomplete="new-password" required>
+            <button type="submit" class="botao secundario">Salvar</button>
+          </form>
+        </details>
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

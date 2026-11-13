@@ -1,0 +1,30 @@
+C;10001043000145;10001;CLIENTE EXEMPLO 1043 LTDA;CLIENTE EXEMPLO 1043 LTDA;Rua Exemplo 1;125;-;4209102;SC;89233740;itinga
+V;1690911;10001043000145
+I;1690911;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1596159.;1.000;165.0000
+C;10001044000190;10002;CLIENTE EXEMPLO 1044 LTDA;CLIENTE EXEMPLO 1044 LTDA;Rua Exemplo 2;111;-;4314407;RS;96077690;Areal
+V;1681525;10001044000190
+I;1681525;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1586771.;1.000;165.0000
+C;10001045000134;10003;CLIENTE EXEMPLO 1045 LTDA;CLIENTE EXEMPLO 1045 LTDA;Rua Exemplo 3;69;-;4205407;SC;88015230;centro
+V;1690906;10001045000134
+I;1690906;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1596154.;1.000;165.0000
+C;10001046000189;10004;CLIENTE EXEMPLO 1046 LTDA;CLIENTE EXEMPLO 1046 LTDA;Rua Exemplo 4;1621;-;3306008;RJ;25802000;CENTRO
+V;1690908;10001046000189
+I;1690908;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1596156.;1.000;165.0000
+C;10001047000123;10005;CLIENTE EXEMPLO 1047 LTDA;CLIENTE EXEMPLO 1047 LTDA;Rua Exemplo 5;820;-;4314902;RS;91040610;SAO JOAO
+V;1689659;10001047000123
+I;1689659;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1594907.;1.000;165.0000
+C;10001048000178;10006;CLIENTE EXEMPLO 1048 LTDA;CLIENTE EXEMPLO 1048 LTDA;Rua Exemplo 6;175;-;4305108;RS;95043660;Sao Jose
+V;1682606;10001048000178
+I;1682606;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1587854.;1.000;165.0000
+C;10001049000112;10007;CLIENTE EXEMPLO 1049 LTDA;CLIENTE EXEMPLO 1049 LTDA;Rua Exemplo 7;254;-;3106200;MG;30190130;barro preto
+V;1689603;10001049000112
+I;1689603;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1594851.;1.000;165.0000
+C;10001050000147;10008;CLIENTE EXEMPLO 1050 LTDA;CLIENTE EXEMPLO 1050 LTDA;Rua Exemplo 8;30;-;4208906;SC;89254730;CHICO DE PAULO
+V;1690291;10001050000147
+I;1690291;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1595539.;1.000;165.0000
+C;10001051000191;10009;CLIENTE EXEMPLO 1051 LTDA;CLIENTE EXEMPLO 1051 LTDA;Rua Exemplo 9;1111;-;3106200;MG;31170678;Dom Joaquim
+V;1690923;10001051000191
+I;1690923;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1596171.;1.000;165.0000
+C;10001052000136;10010;CLIENTE EXEMPLO 1052 LTDA;CLIENTE EXEMPLO 1052 LTDA;Rua Exemplo 10;190;-;4204202;SC;89805226;Lider
+V;1687637;10001052000136
+I;1687637;25;Ressarcimento de custos de utilizacao de recursos de tecnologia da informacao para fornecimento de plataforma para a realizacao de licitacoes.;Periodo mensal de uso do Portal Exemplo, boleto IU1592885.;1.000;165.0000

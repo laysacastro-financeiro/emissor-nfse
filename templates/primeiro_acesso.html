@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Primeiro acesso — Emissor NFS-e{% endblock %}
+{% block conteudo %}
+<div class="cartao estreito">
+  <h1>Primeiro acesso</h1>
+  <p class="suave">Ainda não há usuários. Crie o <b>administrador</b> do sistema — ele cadastra o restante da equipe.</p>
+  <form method="post" class="formulario">
+    <label>Nome <input name="nome" required autofocus></label>
+    <label>Login <input name="login" placeholder="ex.: usuario.teste" pattern="[a-z0-9._\-]{3,30}" required></label>
+    <label>Senha (mínimo 8 caracteres) <input type="password" name="senha" minlength="8" autocomplete="new-password" required></label>
+    <label>Confirme a senha <input type="password" name="confirmacao" minlength="8" autocomplete="new-password" required></label>
+    <button type="submit">Criar administrador</button>
+  </form>
+</div>
+{% endblock %}
